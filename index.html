@@ -40,6 +40,7 @@
     letter-spacing: 2px;
   }
   header p { color: var(--muted); font-size: 0.92rem; margin-top: 6px; }
+  #bestInfo { display: block; color: var(--cyan); font-size: 0.9rem; margin-top: 6px; }
   .legend {
     display: flex; gap: 16px; justify-content: center;
     flex-wrap: wrap; color: var(--muted); font-size: 0.85rem; margin-bottom: 12px;
@@ -49,7 +50,7 @@
   .dot.green { background: var(--correct); }
   .dot.red { background: var(--wrong); }
   .toolbar {
-    display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 18px;
+    display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 14px;
   }
   .toolbar button {
     background: var(--card); color: var(--text);
@@ -59,6 +60,19 @@
   }
   .toolbar button:hover { background: #323a56; }
   .toolbar button:active { transform: scale(0.96); }
+  .progress-wrap { max-width: 1080px; margin: 0 auto 16px; }
+  .progress-bar {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 999px; height: 10px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, var(--gold), var(--accent));
+    border-radius: 999px; transition: width 0.35s ease;
+  }
+  .progress-text {
+    text-align: center; color: var(--muted); font-size: 0.85rem; margin-top: 6px;
+  }
   .container {
     display: grid; grid-template-columns: 1fr 1fr; gap: 22px;
     max-width: 1080px; margin: 0 auto; align-items: start;
@@ -75,6 +89,7 @@
     border-radius: 14px; padding: 12px 14px;
     display: flex; gap: 14px; align-items: center;
     cursor: grab; transition: border-color 0.2s, transform 0.1s, opacity 0.2s;
+    touch-action: none; user-select: none; -webkit-user-select: none;
   }
   .sticker:hover { border-color: var(--gold); }
   .sticker:active { cursor: grabbing; }
@@ -88,7 +103,7 @@
   .sticker .lname { font-weight: 700; font-size: 1.02rem; }
   .sticker .lname .en { color: var(--muted); font-weight: 400; font-size: 0.78rem; margin-left: 6px; }
   .sticker .hint { color: var(--muted); font-size: 0.8rem; margin-top: 2px; }
-  .sticker.dragging { opacity: 0.6; }
+  .sticker.dragging { opacity: 0.55; }
   .sticker.selected { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(255,209,102,0.35); }
   .sticker.matched { opacity: 0.4; pointer-events: none; border-color: #2c3248; }
   .char-list { display: flex; flex-direction: column; gap: 12px; }
@@ -113,29 +128,84 @@
   .result.success { color: var(--gold); font-weight: 700; }
   .result.error { color: var(--muted); }
   footer { text-align: center; color: #5a6080; font-size: 0.8rem; margin-top: 26px; }
+
+  /* ===== 反馈动画 ===== */
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-6px); }
+    80% { transform: translateX(6px); }
+  }
+  .char-slot.shake { animation: shake 0.45s ease; border-color: var(--wrong) !important; }
+  @keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+    100% { transform: scale(1); }
+  }
+  .char-slot.pop { animation: pop 0.35s ease; border-color: var(--correct) !important; }
+
+  /* ===== 拖拽幽灵 ===== */
+  .drag-ghost {
+    position: fixed; z-index: 9999; pointer-events: none;
+    width: 212px; max-width: 46vw;
+    background: var(--card); border: 1px solid var(--gold);
+    border-radius: 14px; padding: 12px 14px;
+    display: flex; gap: 14px; align-items: center;
+    box-shadow: 0 14px 34px rgba(0,0,0,0.65);
+    opacity: 0.92; transform: rotate(-2deg);
+  }
+  .drag-ghost .lightimg {
+    width: 92px; height: 74px; flex-shrink: 0;
+    background: #10131c; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid #2c3248; overflow: hidden;
+  }
+  .drag-ghost .lightimg svg { width: 100%; height: 100%; display: block; }
+  .drag-ghost .lname { font-weight: 700; font-size: 1.02rem; }
+  .drag-ghost .lname .en { color: var(--muted); font-weight: 400; font-size: 0.78rem; margin-left: 6px; }
+  .drag-ghost .hint { color: var(--muted); font-size: 0.8rem; margin-top: 2px; }
+
+  /* ===== 通关彩带 ===== */
+  .confetti {
+    position: fixed; z-index: 9998; pointer-events: none;
+    width: 10px; height: 16px; border-radius: 2px;
+    animation: confetti-fall 1.8s ease-out forwards;
+  }
+  @keyframes confetti-fall {
+    0% { opacity: 1; transform: translate(0, 0) rotate(0deg); }
+    100% { opacity: 0; transform: translate(var(--dx), 88vh) rotate(var(--dr)); }
+  }
+
   @media (max-width: 760px) {
     .container { grid-template-columns: 1fr; }
     .sticker .lightimg { width: 78px; height: 62px; }
   }
-</style>
-</head>
+</style></head>
 <body>
 
 <header>
   <h1>💡 舞台灯光设计 · 灯具配对</h1>
-  <p>桌面端：把左侧的「灯具」拖到右边对应的「光效用途」槽里<br>手机端：先点选灯具，再点击光效槽完成连线</p>
+  <p>拖动或点选左侧「灯具」，放到右边对应的「光效用途」槽里（手机直接按住拖动）</p>
+  <span id="bestInfo"></span>
 </header>
 
 <div class="legend">
-  <span><i class="dot gold"></i>点选/拖拽灯具</span>
+  <span><i class="dot gold"></i>拖动/点选灯具</span>
   <span><i class="dot green"></i>匹配正确</span>
-  <span><i class="dot red"></i>匹配错误</span>
+  <span><i class="dot red"></i>匹配错误（抖动还原）</span>
 </div>
 
 <div class="toolbar">
   <button class="btn-shuffle" onclick="shuffleLights()">🔀 随机打乱</button>
+  <button class="btn-undo" onclick="undoLast()">↩ 撤销</button>
   <button class="btn-check" onclick="checkAll()">✅ 检查答案</button>
   <button class="btn-reset" onclick="resetAll()">↺ 重置</button>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="progress-text" id="progressText">已正确匹配 0 / 12</div>
 </div>
 
 <div class="container">
@@ -153,7 +223,7 @@
 <div class="result" id="result"></div>
 
 <footer>
-  灯具示意图由程序绘制 · 仅用于活动体验
+  手绘 SVG 示意图 · 桌面端可拖拽，手机端按住即拖
 </footer>
 
 <script>
@@ -185,9 +255,7 @@
       img: '<svg viewBox="0 0 96 96"><circle cx="40" cy="46" r="28" fill="#2a2f3a"/><circle cx="40" cy="46" r="20" fill="#fff3c4"/><circle cx="40" cy="46" r="20" fill="none" stroke="#c9a227" stroke-width="2" stroke-dasharray="2 4"/><circle cx="40" cy="46" r="13" fill="none" stroke="#c9a227" stroke-width="2" stroke-dasharray="2 4"/><circle cx="40" cy="46" r="6" fill="#c9a227"/><rect x="30" y="74" width="20" height="6" rx="2" fill="#c9c2b4"/></svg>' },
     { id: 'l12', name: '天排灯', en: 'Cyc Light', answer: 'fx12', hint: '一排朝上照向天幕',
       img: '<svg viewBox="0 0 96 96"><rect x="16" y="62" width="52" height="12" rx="5" fill="#e8e4d8"/><rect x="16" y="74" width="52" height="5" rx="2" fill="#c9c2b4"/><path d="M32 62 Q32 28 22 16" stroke="#ff6b6b" stroke-width="8" opacity="0.5" stroke-linecap="round"/><path d="M50 62 Q50 28 40 16" stroke="#ffd166" stroke-width="8" opacity="0.5" stroke-linecap="round"/><path d="M68 62 Q68 28 58 16" stroke="#4ecdc4" stroke-width="8" opacity="0.5" stroke-linecap="round"/></svg>' },
-  ];
-
-  const EFFECTS = [
+  ];  const EFFECTS = [
     { id: 'fx1', icon: '🎯', title: '角色跟随', desc: '光束追着主角移动，走到哪亮到哪' },
     { id: 'fx2', icon: '💠', title: '定点照亮', desc: '把舞台某个区域照得格外亮' },
     { id: 'fx3', icon: '🎨', title: '氛围染色', desc: '整个舞台铺满色调，渲染情绪' },
@@ -213,6 +281,20 @@
   let lightOrder = shuffleArray([...LIGHTS]);
   let assignments = {};
   let matchedLights = new Set();
+  let streak = 0;
+  let mistakes = 0;
+  let history = [];
+  let completedShown = false;
+  let selectedLightId = null;
+  let draggedId = null;
+  let ghost = null;
+  let dragActive = false;
+  let dragSlotId = null;
+  let suppressClick = false;
+  let pointerId = null;
+  let startX = 0;
+  let startY = 0;
+  let startedDrag = false;
 
   // ===== 渲染 =====
   function renderStickers() {
@@ -221,13 +303,15 @@
     lightOrder.forEach(s => {
       const el = document.createElement('div');
       el.className = 'sticker' + (matchedLights.has(s.id) ? ' matched' : '');
-      el.draggable = !matchedLights.has(s.id);
       el.dataset.id = s.id;
       el.innerHTML =
         '<div class="lightimg">' + s.img + '</div>' +
         '<div><div class="lname">' + s.name + '<span class="en">' + s.en + '</span></div>' +
         '<div class="hint">💡 ' + s.hint + '</div></div>';
-      el.addEventListener('dragstart', onDragStart);
+      el.addEventListener('pointerdown', onPointerDown);
+      el.addEventListener('pointermove', onPointerMove);
+      el.addEventListener('pointerup', onPointerUp);
+      el.addEventListener('pointercancel', onPointerCancel);
       el.addEventListener('click', onStickerTap);
       sheet.appendChild(el);
     });
@@ -245,9 +329,6 @@
         '<div><div class="title">' + c.title + '</div>' +
         '<div class="desc">' + c.desc + '</div></div></div>' +
         '<span class="placed"></span>';
-      el.addEventListener('dragover', onDragOver);
-      el.addEventListener('dragleave', onDragLeave);
-      el.addEventListener('drop', onDrop);
       el.addEventListener('click', onEffectTap);
       list.appendChild(el);
     });
@@ -268,41 +349,149 @@
     });
   }
 
-  // ===== 拖拽（桌面端）+ 点选（移动端） =====
-  let draggedId = null;
-  let selectedLightId = null;
-
-  function onDragStart(e) {
-    draggedId = e.currentTarget.dataset.id;
-    e.currentTarget.classList.add('dragging');
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', draggedId);
+  function updateProgress() {
+    const total = LIGHTS.length;
+    const matched = matchedLights.size;
+    const fill = document.getElementById('progressFill');
+    const txt = document.getElementById('progressText');
+    if (fill) fill.style.width = (matched / total * 100) + '%';
+    if (txt) {
+      let s = '已正确匹配 ' + matched + ' / ' + total;
+      if (streak >= 2) s += ' · 🔥 连对 ' + streak;
+      if (mistakes > 0) s += ' · 错误 ' + mistakes + ' 次';
+      txt.textContent = s;
+    }
+    updateBest();
   }
 
-  function onDragOver(e) {
-    e.preventDefault();
-    e.currentTarget.classList.add('drag-over');
+  function updateBest() {
+    const b = loadBest();
+    const el = document.getElementById('bestInfo');
+    if (el) el.textContent = b > 0 ? '🏅 个人最佳：' + b + ' / ' + LIGHTS.length : '';
   }
 
-  function onDragLeave(e) {
-    e.currentTarget.classList.remove('drag-over');
+  function loadBest() {
+    try { return parseInt(localStorage.getItem('stageLightBest') || '0', 10) || 0; } catch (err) { return 0; }
   }
 
-  function onDrop(e) {
-    e.preventDefault();
-    const fxId = e.currentTarget.dataset.id;
-    e.currentTarget.classList.remove('drag-over');
-    if (draggedId === null) return;
-    placeLight(draggedId, fxId);
-    draggedId = null;
+  function saveBest() {
+    const m = matchedLights.size;
+    if (m > loadBest()) {
+      try { localStorage.setItem('stageLightBest', String(m)); } catch (err) {}
+    }
   }
 
-  function onStickerTap(e) {
+  function setResult(msg, cls) {
+    const r = document.getElementById('result');
+    r.textContent = msg;
+    r.className = 'result' + (cls ? ' ' + cls : '');
+  }  // ===== 统一拖拽（鼠标 + 触屏） =====
+  function onPointerDown(e) {
     const id = e.currentTarget.dataset.id;
     if (matchedLights.has(id)) return;
-    document.querySelectorAll('.sticker.selected').forEach(el => el.classList.remove('selected'));
+    selectSticker(id);
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    pointerId = e.pointerId;
+    startX = e.clientX;
+    startY = e.clientY;
+    startedDrag = false;
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) {}
+  }
+
+  function onPointerMove(e) {
+    if (pointerId !== e.pointerId) return;
+    if (!startedDrag) {
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      if (Math.abs(dx) + Math.abs(dy) < 8) return;
+      beginDrag(e.currentTarget, e.clientX, e.clientY);
+    }
+    if (!dragActive) return;
+    e.preventDefault();
+    moveGhost(e.clientX, e.clientY);
+    const under = document.elementFromPoint(e.clientX, e.clientY);
+    const slot = under ? under.closest('.char-slot') : null;
+    highlightSlot(slot ? slot.dataset.id : null);
+  }
+
+  function onPointerUp(e) {
+    if (pointerId !== e.pointerId) return;
+    pointerId = null;
+    const wasDrag = startedDrag;
+    startedDrag = false;
+    if (wasDrag && dragActive) {
+      e.preventDefault();
+      const under = document.elementFromPoint(e.clientX, e.clientY);
+      const slot = under ? under.closest('.char-slot') : null;
+      if (slot && draggedId) {
+        suppressClick = true;
+        setTimeout(function() { suppressClick = false; }, 0);
+        selectedLightId = null;
+        placeLight(draggedId, slot.dataset.id);
+      }
+    }
+    endDrag();
+  }
+
+  function onPointerCancel(e) {
+    if (pointerId !== e.pointerId) return;
+    pointerId = null;
+    startedDrag = false;
+    endDrag();
+  }
+
+  function beginDrag(sticker, x, y) {
+    startedDrag = true;
+    dragActive = true;
+    draggedId = sticker.dataset.id;
+    ghost = document.createElement('div');
+    ghost.className = 'drag-ghost';
+    ghost.innerHTML = sticker.innerHTML;
+    document.body.appendChild(ghost);
+    sticker.classList.add('dragging');
+    moveGhost(x, y);
+  }
+
+  function moveGhost(x, y) {
+    if (!ghost) return;
+    ghost.style.left = (x - ghost.offsetWidth / 2) + 'px';
+    ghost.style.top = (y - ghost.offsetHeight / 2) + 'px';
+  }
+
+  function highlightSlot(id) {
+    if (dragSlotId === id) return;
+    document.querySelectorAll('.char-slot.drag-over').forEach(s => s.classList.remove('drag-over'));
+    dragSlotId = id;
+    if (id) {
+      const slot = document.querySelector('.char-slot[data-id="' + id + '"]');
+      if (slot) slot.classList.add('drag-over');
+    }
+  }
+
+  function endDrag() {
+    dragActive = false;
+    draggedId = null;
+    dragSlotId = null;
+    pointerId = null;
+    startedDrag = false;
+    if (ghost) { ghost.remove(); ghost = null; }
+    document.querySelectorAll('.sticker.dragging').forEach(el => el.classList.remove('dragging'));
+    document.querySelectorAll('.char-slot.drag-over').forEach(s => s.classList.remove('drag-over'));
+  }
+
+  function selectSticker(id) {
     selectedLightId = id;
-    e.currentTarget.classList.add('selected');
+    document.querySelectorAll('.sticker.selected').forEach(el => el.classList.remove('selected'));
+    const el = document.querySelector('.sticker[data-id="' + id + '"]');
+    if (el) el.classList.add('selected');
+  }
+
+  // ===== 点选（备选操作方式） =====
+  function onStickerTap(e) {
+    if (suppressClick) return;
+    const id = e.currentTarget.dataset.id;
+    if (matchedLights.has(id)) return;
+    selectSticker(id);
   }
 
   function onEffectTap(e) {
@@ -313,125 +502,159 @@
     document.querySelectorAll('.sticker.selected').forEach(el => el.classList.remove('selected'));
   }
 
-  function placeLight(lightId, fxId) {
-    const slot = document.querySelector('.char-slot[data-id="' + fxId + '"]');
-    if (!slot) return;
-
-    const prevLightInSlot = Object.keys(assignments).find(k => assignments[k] === fxId);
-    if (prevLightInSlot && prevLightInSlot !== lightId) {
-      const prevEl = document.querySelector('.sticker[data-id="' + prevLightInSlot + '"]');
-      if (prevEl) {
-        prevEl.classList.remove('matched');
-        prevEl.draggable = true;
-      }
-      delete assignments[prevLightInSlot];
-      matchedLights.delete(prevLightInSlot);
+  // ===== 匹配判定与反馈 =====
+  function releaseLight(lightId) {
+    const fxId = assignments[lightId];
+    delete assignments[lightId];
+    matchedLights.delete(lightId);
+    if (fxId) {
+      const slot = document.querySelector('.char-slot[data-id="' + fxId + '"]');
+      if (slot) slot.classList.remove('correct', 'wrong', 'shake', 'pop');
     }
+    const lightEl = document.querySelector('.sticker[data-id="' + lightId + '"]');
+    if (lightEl) lightEl.classList.remove('matched', 'selected');
+    updateEffectPlaced();
+    updateProgress();
+  }
 
-    const prevFx = assignments[lightId];
-    if (prevFx) {
-      const prevSlot = document.querySelector('.char-slot[data-id="' + prevFx + '"]');
-      if (prevSlot) prevSlot.classList.remove('correct', 'wrong');
+  function setAssignment(lightId, fxId) {
+    const displaced = Object.keys(assignments).find(k => assignments[k] === fxId);
+    if (displaced && displaced !== lightId) releaseLight(displaced);
+    const oldFx = assignments[lightId];
+    if (oldFx && oldFx !== fxId) {
+      const oldSlot = document.querySelector('.char-slot[data-id="' + oldFx + '"]');
+      if (oldSlot) oldSlot.classList.remove('correct', 'wrong', 'shake', 'pop');
     }
-
     assignments[lightId] = fxId;
     matchedLights.add(lightId);
-
+    const slot = document.querySelector('.char-slot[data-id="' + fxId + '"]');
     const light = LIGHTS.find(s => s.id === lightId);
-    const isCorrect = light.answer === fxId;
-    slot.classList.add(isCorrect ? 'correct' : 'wrong');
-
+    const ok = !!(light && light.answer === fxId);
+    if (slot) {
+      slot.classList.remove('correct', 'wrong', 'shake', 'pop');
+      slot.classList.add(ok ? 'correct' : 'wrong');
+    }
     const lightEl = document.querySelector('.sticker[data-id="' + lightId + '"]');
     if (lightEl) {
       lightEl.classList.add('matched');
-      lightEl.draggable = false;
+      lightEl.classList.remove('selected');
     }
-
     updateEffectPlaced();
+    updateProgress();
+    return ok;
   }
 
-  // ===== 提醒节点 =====
-  let milestonesShown = new Set();
-
-  function checkMilestones(correct) {
-    const msgs = {
-      5: '🌟 达成 5 连对！灯光师潜力初显！',
-      10: '🏆 十连对！舞台已经被你点亮了！',
-      12: '👑 满分通关！全部 12 种灯具都认出来了！'
-    };
-    [12, 10, 5].forEach(n => {
-      if (correct >= n && !milestonesShown.has(n)) {
-        milestonesShown.add(n);
-        const result = document.getElementById('result');
-        result.textContent = msgs[n];
-        result.className = 'result success';
-      }
+  function placeLight(lightId, fxId) {
+    const light = LIGHTS.find(s => s.id === lightId);
+    if (!light) return;
+    history.push({
+      lightId: lightId,
+      fromFxId: assignments[lightId] || null,
+      toFxId: fxId,
+      displacedId: Object.keys(assignments).find(k => assignments[k] === fxId && k !== lightId) || null,
+      streak: streak,
+      mistakes: mistakes
     });
+    const ok = setAssignment(lightId, fxId);
+    if (ok) {
+      streak++;
+      const slot = document.querySelector('.char-slot[data-id="' + fxId + '"]');
+      if (slot) { slot.classList.remove('pop'); void slot.offsetWidth; slot.classList.add('pop'); }
+      if (streak === 5) {
+        setResult('🌟 达成 5 连对！灯光师潜力初显！', 'success');
+      } else if (streak === 10) {
+        setResult('🏆 十连对！舞台已经被你点亮了！', 'success');
+      } else if (matchedLights.size === LIGHTS.length && !completedShown) {
+        completedShown = true;
+        setResult('👑 满分通关！全部 12 种灯具都认出来了！', 'success');
+        celebrate();
+      }
+    } else {
+      mistakes++;
+      streak = 0;
+      const slot = document.querySelector('.char-slot[data-id="' + fxId + '"]');
+      if (slot) { slot.classList.remove('shake'); void slot.offsetWidth; slot.classList.add('shake'); }
+      setResult('✗ 配对错了，再试试！', 'error');
+      setTimeout(function() {
+        if (assignments[lightId] === fxId) releaseLight(lightId);
+      }, 650);
+    }
+    updateProgress();
+    saveBest();
+  }
+
+  function undoLast() {
+    const last = history.pop();
+    if (!last) { setResult('没有可撤销的操作', 'error'); return; }
+    releaseLight(last.lightId);
+    if (last.displacedId) setAssignment(last.displacedId, last.toFxId);
+    if (last.fromFxId) setAssignment(last.lightId, last.fromFxId);
+    streak = last.streak;
+    mistakes = last.mistakes;
+    setResult('↩ 已撤销上一步', 'error');
+    updateProgress();
+  }
+
+  function celebrate() {
+    const colors = ['#ffd166', '#ff6b6b', '#4ecdc4', '#a29bfe', '#2ecc71', '#ff8fab'];
+    for (let i = 0; i < 40; i++) {
+      const c = document.createElement('div');
+      c.className = 'confetti';
+      c.style.left = (Math.random() * 100) + 'vw';
+      c.style.top = '-18px';
+      c.style.background = colors[i % colors.length];
+      c.style.setProperty('--dx', ((Math.random() - 0.5) * 180) + 'px');
+      c.style.setProperty('--dr', ((Math.random() - 0.5) * 560) + 'deg');
+      c.style.animationDelay = (Math.random() * 0.7) + 's';
+      document.body.appendChild(c);
+      setTimeout(function(el) { el.remove(); }, 2600 + i, c);
+    }
   }
 
   // ===== 操作 =====
-  function shuffleLights() {
+  function freshRound() {
     assignments = {};
     matchedLights = new Set();
-    milestonesShown = new Set();
-    document.querySelectorAll('.char-slot').forEach(s => s.classList.remove('correct', 'wrong', 'drag-over'));
+    streak = 0;
+    mistakes = 0;
+    history = [];
+    completedShown = false;
+    selectedLightId = null;
+    endDrag();
     lightOrder = shuffleArray([...LIGHTS]);
-    document.getElementById('result').textContent = '';
-    document.getElementById('result').className = 'result';
+    document.querySelectorAll('.char-slot').forEach(s => s.classList.remove('correct', 'wrong', 'shake', 'pop', 'drag-over'));
+    setResult('', '');
     renderStickers();
     renderEffects();
+    updateProgress();
+    updateBest();
   }
+
+  function shuffleLights() { freshRound(); }
+
+  function resetAll() { freshRound(); }
 
   function checkAll() {
-    const total = EFFECTS.length;
-    let correct = 0;
-    EFFECTS.forEach(c => {
-      const slot = document.querySelector('.char-slot[data-id="' + c.id + '"]');
-      const assigned = Object.keys(assignments).filter(k => assignments[k] === c.id);
-      if (assigned.length === 0) {
-        slot.classList.remove('correct', 'wrong');
-      } else {
-        const light = LIGHTS.find(s => s.id === assigned[0]);
-        if (light.answer === c.id) {
-          slot.classList.add('correct');
-          slot.classList.remove('wrong');
-          correct++;
-        } else {
-          slot.classList.add('wrong');
-          slot.classList.remove('correct');
-        }
-      }
-    });
-
-    const result = document.getElementById('result');
+    const total = LIGHTS.length;
+    const correct = matchedLights.size;
     if (correct === total) {
-      result.textContent = '🎉 全部正确！舞台灯光就位！';
-      result.className = 'result success';
+      setResult('🎉 全部正确！舞台灯光就位！', 'success');
+      if (!completedShown) {
+        completedShown = true;
+        celebrate();
+      }
     } else if (correct === 0) {
-      result.textContent = '还没开始匹配哦～';
-      result.className = 'result error';
+      setResult('还没开始匹配哦～', 'error');
     } else {
-      result.textContent = '⭐ 得分：' + correct + ' / ' + total + ' · 继续加油！';
-      result.className = 'result error';
+      setResult('⭐ 已正确匹配 ' + correct + ' / ' + total + ' · 继续加油！', 'error');
     }
-    checkMilestones(correct);
-  }
-
-  function resetAll() {
-    assignments = {};
-    matchedLights = new Set();
-    milestonesShown = new Set();
-    document.querySelectorAll('.char-slot').forEach(s => s.classList.remove('correct', 'wrong', 'drag-over'));
-    lightOrder = shuffleArray([...LIGHTS]);
-    document.getElementById('result').textContent = '';
-    document.getElementById('result').className = 'result';
-    renderStickers();
-    renderEffects();
   }
 
   // ===== 初始化 =====
   renderStickers();
   renderEffects();
+  updateProgress();
+  updateBest();
 </script>
 </body>
 </html>
