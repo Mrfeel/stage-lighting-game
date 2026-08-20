@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>舞台灯光设计 · 灯具配对</title>
+<style>
+  :root {
+    --bg: #12141c;
+    --panel: #1d2130;
+    --card: #262c3f;
+    --border: #3a4160;
+    --text: #f0ead6;
+    --muted: #9aa0b8;
+    --gold: #ffd166;
+    --accent: #ff6b6b;
+    --cyan: #4ecdc4;
+    --purple: #a29bfe;
+    --correct: #2ecc71;
+    --wrong: #e74c3c;
+    --shadow: 0 4px 16px rgba(0,0,0,0.45);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", sans-serif;
+    background: radial-gradient(1200px 600px at 50% -10%, #1c2233 0%, var(--bg) 55%);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px;
+    line-height: 1.6;
+    -webkit-tap-highlight-color: transparent;
+  }
+  header { text-align: center; margin-bottom: 18px; }
+  header h1 {
+    font-size: 1.9rem;
+    background: linear-gradient(135deg, var(--gold), var(--accent), var(--purple));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    letter-spacing: 2px;
+  }
+  header p { color: var(--muted); font-size: 0.92rem; margin-top: 6px; }
+  .legend {
+    display: flex; gap: 16px; justify-content: center;
+    flex-wrap: wrap; color: var(--muted); font-size: 0.85rem; margin-bottom: 12px;
+  }
+  .legend .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; }
+  .dot.gold { background: var(--gold); }
+  .dot.green { background: var(--correct); }
+  .dot.red { background: var(--wrong); }
+  .toolbar {
+    display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 18px;
+  }
+  .toolbar button {
+    background: var(--card); color: var(--text);
+    border: 1px solid var(--border); border-radius: 999px;
+    padding: 9px 20px; font-size: 0.95rem; cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .toolbar button:hover { background: #323a56; }
+  .toolbar button:active { transform: scale(0.96); }
+  .container {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 22px;
+    max-width: 1080px; margin: 0 auto; align-items: start;
+  }
+  .panel {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 16px; padding: 18px;
+  }
+  .panel h2 { font-size: 1.15rem; margin-bottom: 14px; color: var(--gold); }
+  .panel h2 .icon { margin-right: 6px; }
+  .sticker-sheet { display: flex; flex-direction: column; gap: 12px; }
+  .sticker {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 12px 14px;
+    display: flex; gap: 14px; align-items: center;
+    cursor: grab; transition: border-color 0.2s, transform 0.1s, opacity 0.2s;
+  }
+  .sticker:hover { border-color: var(--gold); }
+  .sticker:active { cursor: grabbing; }
+  .sticker .lightimg {
+    width: 92px; height: 74px; flex-shrink: 0;
+    background: #10131c; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid #2c3248; overflow: hidden;
+  }
+  .sticker .lightimg svg { width: 100%; height: 100%; display: block; }
+  .sticker .lname { font-weight: 700; font-size: 1.02rem; }
+  .sticker .lname .en { color: var(--muted); font-weight: 400; font-size: 0.78rem; margin-left: 6px; }
+  .sticker .hint { color: var(--muted); font-size: 0.8rem; margin-top: 2px; }
+  .sticker.dragging { opacity: 0.6; }
+  .sticker.selected { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(255,209,102,0.35); }
+  .sticker.matched { opacity: 0.4; pointer-events: none; border-color: #2c3248; }
+  .char-list { display: flex; flex-direction: column; gap: 12px; }
+  .char-slot {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 12px 14px; cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .char-slot:hover { border-color: var(--purple); }
+  .char-slot .row { display: flex; align-items: center; gap: 10px; }
+  .char-slot .icon { font-size: 1.5rem; }
+  .char-slot .title { font-weight: 700; font-size: 1rem; }
+  .char-slot .desc { color: var(--muted); font-size: 0.82rem; margin-top: 2px; }
+  .char-slot .placed { display: block; color: var(--cyan); font-size: 0.82rem; margin-top: 6px; }
+  .char-slot.drag-over { border-color: var(--gold); background: #2c3350; }
+  .char-slot.correct { border-color: var(--correct); background: rgba(46,204,113,0.12); }
+  .char-slot.wrong { border-color: var(--wrong); background: rgba(231,76,60,0.12); }
+  .result {
+    max-width: 1080px; margin: 18px auto 0; text-align: center;
+    font-size: 1.1rem; min-height: 28px;
+  }
+  .result.success { color: var(--gold); font-weight: 700; }
+  .result.error { color: var(--muted); }
+  footer { text-align: center; color: #5a6080; font-size: 0.8rem; margin-top: 26px; }
+  @media (max-width: 760px) {
+    .container { grid-template-columns: 1fr; }
+    .sticker .lightimg { width: 78px; height: 62px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>💡 舞台灯光设计 · 灯具配对</h1>
+  <p>桌面端：把左侧的「灯具」拖到右边对应的「光效用途」槽里<br>手机端：先点选灯具，再点击光效槽完成连线</p>
+</header>
+
+<div class="legend">
+  <span><i class="dot gold"></i>点选/拖拽灯具</span>
+  <span><i class="dot green"></i>匹配正确</span>
+  <span><i class="dot red"></i>匹配错误</span>
+</div>
+
+<div class="toolbar">
+  <button class="btn-shuffle" onclick="shuffleLights()">🔀 随机打乱</button>
+  <button class="btn-check" onclick="checkAll()">✅ 检查答案</button>
+  <button class="btn-reset" onclick="resetAll()">↺ 重置</button>
+</div>
+
+<div class="container">
+  <div class="panel">
+    <h2><span class="icon">🎛️</span>舞台灯具库</h2>
+    <div class="sticker-sheet" id="stickerSheet"></div>
+  </div>
+
+  <div class="panel">
+    <h2><span class="icon">🌈</span>光效用途卡</h2>
+    <div class="char-list" id="charList"></div>
+  </div>
+</div>
+
+<div class="result" id="result"></div>
+
+<footer>
+  灯具示意图由程序绘制 · 仅用于活动体验
+</footer>
+
+<script>
+  // ===== 数据 =====
+  // 每个灯具: { id, name, en, img(SVG), hint, answer }
+  // 每个用途: { id, icon, title, desc }
+  const LIGHTS = [
+    { id: 'l1', name: '追光灯', en: 'Followspot', answer: 'fx1', hint: '长筒造型，光束追人',
+      img: '<svg viewBox="0 0 96 96"><circle cx="30" cy="48" r="24" fill="#2a2f3a"/><rect x="10" y="38" width="26" height="20" rx="4" fill="#e8e4d8"/><rect x="10" y="44" width="26" height="4" fill="#c9c2b4"/><path d="M36 44 L74 28 L74 68 L36 52 Z" fill="#ffd166" opacity="0.6"/><circle cx="26" cy="48" r="7" fill="#ffd166"/></svg>' },
+    { id: 'l2', name: '聚光灯', en: 'Spot', answer: 'fx2', hint: '锥形光束，集中一点',
+      img: '<svg viewBox="0 0 96 96"><circle cx="30" cy="48" r="24" fill="#2a2f3a"/><rect x="12" y="40" width="22" height="16" rx="3" fill="#e8e4d8"/><path d="M34 47 L72 40 L72 56 L34 49 Z" fill="#fff3c4" opacity="0.85"/><circle cx="72" cy="48" r="5" fill="#fff3c4"/></svg>' },
+    { id: 'l3', name: '染色灯', en: 'Wash', answer: 'fx3', hint: '宽扁灯头，铺色均匀',
+      img: '<svg viewBox="0 0 96 96"><circle cx="30" cy="48" r="24" fill="#2a2f3a"/><rect x="8" y="38" width="32" height="20" rx="6" fill="#e8e4d8"/><path d="M40 46 Q62 28 84 36 Q84 60 40 52 Z" fill="#a29bfe" opacity="0.55"/><rect x="36" y="52" width="6" height="14" rx="2" fill="#c9c2b4"/></svg>' },
+    { id: 'l4', name: '成像灯', en: 'Profile', answer: 'fx4', hint: '可投影花纹图案',
+      img: '<svg viewBox="0 0 96 96"><circle cx="30" cy="48" r="24" fill="#2a2f3a"/><rect x="10" y="40" width="26" height="16" rx="3" fill="#e8e4d8"/><path d="M36 46 L72 40 L72 56 L36 50 Z" fill="#ff8fab" opacity="0.5"/><path d="M60 44 l2.2 4.5 5-0.7 -3.6 3.5 1 4.9 -4.6-2.6 -4.6 2.6 1-4.9 -3.6-3.5 5 0.7z" fill="#ff8fab"/></svg>' },
+    { id: 'l5', name: '摇头灯', en: 'Moving Head', answer: 'fx5', hint: '灯头可自由旋转',
+      img: '<svg viewBox="0 0 96 96"><circle cx="30" cy="34" r="16" fill="#e8e4d8"/><circle cx="30" cy="34" r="7" fill="#4ecdc4"/><rect x="26" y="50" width="8" height="16" rx="2" fill="#c9c2b4"/><rect x="14" y="66" width="32" height="8" rx="3" fill="#2a2f3a"/><path d="M60 20 A22 22 0 0 1 60 48" stroke="#4ecdc4" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M60 20 l9 3 -3-8z" fill="#4ecdc4"/></svg>' },
+    { id: 'l6', name: 'PAR灯', en: 'PAR Can', answer: 'fx6', hint: '圆筒造型，光束强劲',
+      img: '<svg viewBox="0 0 96 96"><rect x="34" y="8" width="10" height="14" fill="#c9c2b4"/><circle cx="40" cy="50" r="28" fill="#2a2f3a"/><circle cx="40" cy="50" r="19" fill="#ffd166"/><circle cx="40" cy="50" r="19" fill="none" stroke="#e8e4d8" stroke-width="3"/><circle cx="40" cy="50" r="8" fill="#fff3c4"/></svg>' },
+    { id: 'l7', name: '频闪灯', en: 'Strobe', answer: 'fx7', hint: '闪电标记，高频闪光',
+      img: '<svg viewBox="0 0 96 96"><rect x="14" y="34" width="26" height="28" rx="5" fill="#e8e4d8"/><rect x="14" y="62" width="26" height="6" rx="2" fill="#c9c2b4"/><path d="M56 18 L36 46 L48 46 L40 74 L70 38 L56 38 Z" fill="#ffd166" stroke="#2a2f3a" stroke-width="2" stroke-linejoin="round"/></svg>' },
+    { id: 'l8', name: '柔光灯', en: 'Softlight', answer: 'fx8', hint: '柔光罩，光线柔和',
+      img: '<svg viewBox="0 0 96 96"><rect x="10" y="34" width="34" height="28" rx="10" fill="#e8e4d8"/><rect x="12" y="38" width="30" height="20" rx="8" fill="#fffdf7"/><line x1="20" y1="43" x2="34" y2="43" stroke="#d4c9b8"/><line x1="20" y1="48" x2="34" y2="48" stroke="#d4c9b8"/><line x1="20" y1="53" x2="34" y2="53" stroke="#d4c9b8"/><path d="M44 44 Q70 40 82 47 Q70 54 44 50 Z" fill="#fff3c4" opacity="0.4"/></svg>' },
+    { id: 'l9', name: '激光灯', en: 'Laser', answer: 'fx9', hint: '多束细光柱',
+      img: '<svg viewBox="0 0 96 96"><rect x="10" y="42" width="26" height="14" rx="4" fill="#e8e4d8"/><circle cx="18" cy="49" r="4" fill="#ff6b6b"/><path d="M36 45 L82 18" stroke="#ff6b6b" stroke-width="3" stroke-linecap="round"/><path d="M36 49 L86 46" stroke="#4ecdc4" stroke-width="3" stroke-linecap="round"/><path d="M36 53 L82 76" stroke="#a29bfe" stroke-width="3" stroke-linecap="round"/></svg>' },
+    { id: 'l10', name: 'LED灯带', en: 'LED Strip', answer: 'fx10', hint: '柔软可弯曲的灯条',
+      img: '<svg viewBox="0 0 96 96"><path d="M10 40 Q30 24 50 40 T90 40" stroke="#4ecdc4" stroke-width="8" fill="none" stroke-linecap="round"/><path d="M10 58 Q30 42 50 58 T90 58" stroke="#ffd166" stroke-width="8" fill="none" stroke-linecap="round"/><circle cx="10" cy="40" r="5" fill="#4ecdc4"/><circle cx="90" cy="40" r="5" fill="#4ecdc4"/><circle cx="10" cy="58" r="5" fill="#ffd166"/><circle cx="90" cy="58" r="5" fill="#ffd166"/></svg>' },
+    { id: 'l11', name: '回光灯', en: 'Fresnel', answer: 'fx11', hint: '同心圆纹路的透镜',
+      img: '<svg viewBox="0 0 96 96"><circle cx="40" cy="46" r="28" fill="#2a2f3a"/><circle cx="40" cy="46" r="20" fill="#fff3c4"/><circle cx="40" cy="46" r="20" fill="none" stroke="#c9a227" stroke-width="2" stroke-dasharray="2 4"/><circle cx="40" cy="46" r="13" fill="none" stroke="#c9a227" stroke-width="2" stroke-dasharray="2 4"/><circle cx="40" cy="46" r="6" fill="#c9a227"/><rect x="30" y="74" width="20" height="6" rx="2" fill="#c9c2b4"/></svg>' },
+    { id: 'l12', name: '天排灯', en: 'Cyc Light', answer: 'fx12', hint: '一排朝上照向天幕',
+      img: '<svg viewBox="0 0 96 96"><rect x="16" y="62" width="52" height="12" rx="5" fill="#e8e4d8"/><rect x="16" y="74" width="52" height="5" rx="2" fill="#c9c2b4"/><path d="M32 62 Q32 28 22 16" stroke="#ff6b6b" stroke-width="8" opacity="0.5" stroke-linecap="round"/><path d="M50 62 Q50 28 40 16" stroke="#ffd166" stroke-width="8" opacity="0.5" stroke-linecap="round"/><path d="M68 62 Q68 28 58 16" stroke="#4ecdc4" stroke-width="8" opacity="0.5" stroke-linecap="round"/></svg>' },
+  ];
+
+  const EFFECTS = [
+    { id: 'fx1', icon: '🎯', title: '角色跟随', desc: '光束追着主角移动，走到哪亮到哪' },
+    { id: 'fx2', icon: '💠', title: '定点照亮', desc: '把舞台某个区域照得格外亮' },
+    { id: 'fx3', icon: '🎨', title: '氛围染色', desc: '整个舞台铺满色调，渲染情绪' },
+    { id: 'fx4', icon: '⭐', title: '图案投影', desc: '在地面或幕布上投出花纹图形' },
+    { id: 'fx5', icon: '🌀', title: '动态扫描', desc: '灯头自由旋转，光斑满场扫动' },
+    { id: 'fx6', icon: '🔥', title: '强劲光束', desc: '一束束强光穿透烟雾，点燃现场' },
+    { id: 'fx7', icon: '⚡', title: '节奏频闪', desc: '跟随鼓点快速闪动，制造动感' },
+    { id: 'fx8', icon: '☁️', title: '柔和底光', desc: '光线柔和均匀，几乎看不到影子' },
+    { id: 'fx9', icon: '🌠', title: '光束线条', desc: '细长光柱交错，科幻感十足' },
+    { id: 'fx10', icon: '📿', title: '轮廓勾边', desc: '沿布景和道具边缘发光描边' },
+    { id: 'fx11', icon: '👤', title: '舞台面光', desc: '照亮演员面部，最经典的主光' },
+    { id: 'fx12', icon: '🖼️', title: '天幕背景', desc: '把整块天幕均匀照亮，映出色调' },
+  ];
+
+  // ===== 状态 =====
+  function shuffleArray(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  let lightOrder = shuffleArray([...LIGHTS]);
+  let assignments = {};
+  let matchedLights = new Set();
+
+  // ===== 渲染 =====
+  function renderStickers() {
+    const sheet = document.getElementById('stickerSheet');
+    sheet.innerHTML = '';
+    lightOrder.forEach(s => {
+      const el = document.createElement('div');
+      el.className = 'sticker' + (matchedLights.has(s.id) ? ' matched' : '');
+      el.draggable = !matchedLights.has(s.id);
+      el.dataset.id = s.id;
+      el.innerHTML =
+        '<div class="lightimg">' + s.img + '</div>' +
+        '<div><div class="lname">' + s.name + '<span class="en">' + s.en + '</span></div>' +
+        '<div class="hint">💡 ' + s.hint + '</div></div>';
+      el.addEventListener('dragstart', onDragStart);
+      el.addEventListener('click', onStickerTap);
+      sheet.appendChild(el);
+    });
+  }
+
+  function renderEffects() {
+    const list = document.getElementById('charList');
+    list.innerHTML = '';
+    EFFECTS.forEach(c => {
+      const el = document.createElement('div');
+      el.className = 'char-slot';
+      el.dataset.id = c.id;
+      el.innerHTML =
+        '<div class="row"><span class="icon">' + c.icon + '</span>' +
+        '<div><div class="title">' + c.title + '</div>' +
+        '<div class="desc">' + c.desc + '</div></div></div>' +
+        '<span class="placed"></span>';
+      el.addEventListener('dragover', onDragOver);
+      el.addEventListener('dragleave', onDragLeave);
+      el.addEventListener('drop', onDrop);
+      el.addEventListener('click', onEffectTap);
+      list.appendChild(el);
+    });
+    updateEffectPlaced();
+  }
+
+  function updateEffectPlaced() {
+    EFFECTS.forEach(c => {
+      const slot = document.querySelector('.char-slot[data-id="' + c.id + '"]');
+      const placed = slot.querySelector('.placed');
+      const assigned = Object.keys(assignments).filter(k => assignments[k] === c.id);
+      if (assigned.length > 0) {
+        const st = LIGHTS.find(s => s.id === assigned[0]);
+        placed.textContent = '← ' + st.name;
+      } else {
+        placed.textContent = '点选灯具…';
+      }
+    });
+  }
+
+  // ===== 拖拽（桌面端）+ 点选（移动端） =====
+  let draggedId = null;
+  let selectedLightId = null;
+
+  function onDragStart(e) {
+    draggedId = e.currentTarget.dataset.id;
+    e.currentTarget.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', draggedId);
+  }
+
+  function onDragOver(e) {
+    e.preventDefault();
+    e.currentTarget.classList.add('drag-over');
+  }
+
+  function onDragLeave(e) {
+    e.currentTarget.classList.remove('drag-over');
+  }
+
+  function onDrop(e) {
+    e.preventDefault();
+    const fxId = e.currentTarget.dataset.id;
+    e.currentTarget.classList.remove('drag-over');
+    if (draggedId === null) return;
+    placeLight(draggedId, fxId);
+    draggedId = null;
+  }
+
+  function onStickerTap(e) {
+    const id = e.currentTarget.dataset.id;
+    if (matchedLights.has(id)) return;
+    document.querySelectorAll('.sticker.selected').forEach(el => el.classList.remove('selected'));
+    selectedLightId = id;
+    e.currentTarget.classList.add('selected');
+  }
+
+  function onEffectTap(e) {
+    if (selectedLightId === null) return;
+    const fxId = e.currentTarget.dataset.id;
+    placeLight(selectedLightId, fxId);
+    selectedLightId = null;
+    document.querySelectorAll('.sticker.selected').forEach(el => el.classList.remove('selected'));
+  }
+
+  function placeLight(lightId, fxId) {
+    const slot = document.querySelector('.char-slot[data-id="' + fxId + '"]');
+    if (!slot) return;
+
+    const prevLightInSlot = Object.keys(assignments).find(k => assignments[k] === fxId);
+    if (prevLightInSlot && prevLightInSlot !== lightId) {
+      const prevEl = document.querySelector('.sticker[data-id="' + prevLightInSlot + '"]');
+      if (prevEl) {
+        prevEl.classList.remove('matched');
+        prevEl.draggable = true;
+      }
+      delete assignments[prevLightInSlot];
+      matchedLights.delete(prevLightInSlot);
+    }
+
+    const prevFx = assignments[lightId];
+    if (prevFx) {
+      const prevSlot = document.querySelector('.char-slot[data-id="' + prevFx + '"]');
+      if (prevSlot) prevSlot.classList.remove('correct', 'wrong');
+    }
+
+    assignments[lightId] = fxId;
+    matchedLights.add(lightId);
+
+    const light = LIGHTS.find(s => s.id === lightId);
+    const isCorrect = light.answer === fxId;
+    slot.classList.add(isCorrect ? 'correct' : 'wrong');
+
+    const lightEl = document.querySelector('.sticker[data-id="' + lightId + '"]');
+    if (lightEl) {
+      lightEl.classList.add('matched');
+      lightEl.draggable = false;
+    }
+
+    updateEffectPlaced();
+  }
+
+  // ===== 提醒节点 =====
+  let milestonesShown = new Set();
+
+  function checkMilestones(correct) {
+    const msgs = {
+      5: '🌟 达成 5 连对！灯光师潜力初显！',
+      10: '🏆 十连对！舞台已经被你点亮了！',
+      12: '👑 满分通关！全部 12 种灯具都认出来了！'
+    };
+    [12, 10, 5].forEach(n => {
+      if (correct >= n && !milestonesShown.has(n)) {
+        milestonesShown.add(n);
+        const result = document.getElementById('result');
+        result.textContent = msgs[n];
+        result.className = 'result success';
+      }
+    });
+  }
+
+  // ===== 操作 =====
+  function shuffleLights() {
+    assignments = {};
+    matchedLights = new Set();
+    milestonesShown = new Set();
+    document.querySelectorAll('.char-slot').forEach(s => s.classList.remove('correct', 'wrong', 'drag-over'));
+    lightOrder = shuffleArray([...LIGHTS]);
+    document.getElementById('result').textContent = '';
+    document.getElementById('result').className = 'result';
+    renderStickers();
+    renderEffects();
+  }
+
+  function checkAll() {
+    const total = EFFECTS.length;
+    let correct = 0;
+    EFFECTS.forEach(c => {
+      const slot = document.querySelector('.char-slot[data-id="' + c.id + '"]');
+      const assigned = Object.keys(assignments).filter(k => assignments[k] === c.id);
+      if (assigned.length === 0) {
+        slot.classList.remove('correct', 'wrong');
+      } else {
+        const light = LIGHTS.find(s => s.id === assigned[0]);
+        if (light.answer === c.id) {
+          slot.classList.add('correct');
+          slot.classList.remove('wrong');
+          correct++;
+        } else {
+          slot.classList.add('wrong');
+          slot.classList.remove('correct');
+        }
+      }
+    });
+
+    const result = document.getElementById('result');
+    if (correct === total) {
+      result.textContent = '🎉 全部正确！舞台灯光就位！';
+      result.className = 'result success';
+    } else if (correct === 0) {
+      result.textContent = '还没开始匹配哦～';
+      result.className = 'result error';
+    } else {
+      result.textContent = '⭐ 得分：' + correct + ' / ' + total + ' · 继续加油！';
+      result.className = 'result error';
+    }
+    checkMilestones(correct);
+  }
+
+  function resetAll() {
+    assignments = {};
+    matchedLights = new Set();
+    milestonesShown = new Set();
+    document.querySelectorAll('.char-slot').forEach(s => s.classList.remove('correct', 'wrong', 'drag-over'));
+    lightOrder = shuffleArray([...LIGHTS]);
+    document.getElementById('result').textContent = '';
+    document.getElementById('result').className = 'result';
+    renderStickers();
+    renderEffects();
+  }
+
+  // ===== 初始化 =====
+  renderStickers();
+  renderEffects();
+</script>
+</body>
+</html>
