@@ -19,16 +19,26 @@
     --correct: #2ecc71;
     --wrong: #e74c3c;
     --shadow: 0 4px 16px rgba(0,0,0,0.45);
+    --glow: #1c2233;
+    --img-bg: #10131c;
+    --img-border: #2c3248;
+    --toolbar-hover: #323a56;
+    --drag-over-bg: #2c3350;
+    --correct-bg: rgba(46, 204, 113, 0.12);
+    --wrong-bg: rgba(231, 76, 60, 0.12);
+    --footer: #5a6080;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", sans-serif;
-    background: radial-gradient(1200px 600px at 50% -10%, #1c2233 0%, var(--bg) 55%);
+    background: radial-gradient(1200px 600px at 50% -10%, var(--glow) 0%, var(--bg) 55%);
     color: var(--text);
     min-height: 100vh;
     padding: 24px;
     line-height: 1.6;
     -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
   }
   header { text-align: center; margin-bottom: 18px; }
   header h1 {
@@ -58,8 +68,26 @@
     padding: 9px 20px; font-size: 0.95rem; cursor: pointer;
     transition: background 0.2s, transform 0.1s;
   }
-  .toolbar button:hover { background: #323a56; }
+  .toolbar button:hover { background: var(--toolbar-hover); }
   .toolbar button:active { transform: scale(0.96); }
+  .toolbar .btn-tool {
+    background: var(--card); color: var(--muted);
+    border: 1px solid var(--border); border-radius: 999px;
+    padding: 9px 20px; font-size: 0.95rem; cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .toolbar .btn-tool:hover { background: var(--toolbar-hover); }
+  .toolbar .btn-tool:active { transform: scale(0.96); }
+  .toolbar .diff-group {
+    display: inline-flex; background: var(--card);
+    border: 1px solid var(--border); border-radius: 999px; overflow: hidden;
+  }
+  .toolbar .diff-group button {
+    background: transparent; border: none; border-radius: 0;
+    padding: 9px 16px; font-size: 0.9rem;
+  }
+  .toolbar .diff-group button:hover { background: transparent; }
+  .toolbar .diff-group button.active { background: var(--gold); color: #1c2233; }
   .progress-wrap { max-width: 1080px; margin: 0 auto 16px; }
   .progress-bar {
     background: var(--card); border: 1px solid var(--border);
@@ -95,9 +123,9 @@
   .sticker:active { cursor: grabbing; }
   .sticker .lightimg {
     width: 92px; height: 74px; flex-shrink: 0;
-    background: #10131c; border-radius: 10px;
+    background: var(--img-bg); border-radius: 10px;
     display: flex; align-items: center; justify-content: center;
-    border: 1px solid #2c3248; overflow: hidden;
+    border: 1px solid var(--img-border); overflow: hidden;
   }
   .sticker .lightimg svg { width: 100%; height: 100%; display: block; }
   .sticker .lname { font-weight: 700; font-size: 1.02rem; }
@@ -105,7 +133,7 @@
   .sticker .hint { color: var(--muted); font-size: 0.8rem; margin-top: 2px; }
   .sticker.dragging { opacity: 0.55; }
   .sticker.selected { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(255,209,102,0.35); }
-  .sticker.matched { opacity: 0.4; pointer-events: none; border-color: #2c3248; }
+  .sticker.matched { opacity: 0.4; pointer-events: none; border-color: var(--img-border); }
   .char-list { display: flex; flex-direction: column; gap: 12px; }
   .char-slot {
     background: var(--card); border: 1px solid var(--border);
@@ -118,16 +146,16 @@
   .char-slot .title { font-weight: 700; font-size: 1rem; }
   .char-slot .desc { color: var(--muted); font-size: 0.82rem; margin-top: 2px; }
   .char-slot .placed { display: block; color: var(--cyan); font-size: 0.82rem; margin-top: 6px; }
-  .char-slot.drag-over { border-color: var(--gold); background: #2c3350; }
-  .char-slot.correct { border-color: var(--correct); background: rgba(46,204,113,0.12); }
-  .char-slot.wrong { border-color: var(--wrong); background: rgba(231,76,60,0.12); }
+  .char-slot.drag-over { border-color: var(--gold); background: var(--drag-over-bg); }
+  .char-slot.correct { border-color: var(--correct); background: var(--correct-bg); }
+  .char-slot.wrong { border-color: var(--wrong); background: var(--wrong-bg); }
   .result {
     max-width: 1080px; margin: 18px auto 0; text-align: center;
     font-size: 1.1rem; min-height: 28px;
   }
   .result.success { color: var(--gold); font-weight: 700; }
   .result.error { color: var(--muted); }
-  footer { text-align: center; color: #5a6080; font-size: 0.8rem; margin-top: 26px; }
+  footer { text-align: center; color: var(--footer); font-size: 0.8rem; margin-top: 26px; }
 
   /* ===== 反馈动画 ===== */
   @keyframes shake {
@@ -157,9 +185,9 @@
   }
   .drag-ghost .lightimg {
     width: 92px; height: 74px; flex-shrink: 0;
-    background: #10131c; border-radius: 10px;
+    background: var(--img-bg); border-radius: 10px;
     display: flex; align-items: center; justify-content: center;
-    border: 1px solid #2c3248; overflow: hidden;
+    border: 1px solid var(--img-border); overflow: hidden;
   }
   .drag-ghost .lightimg svg { width: 100%; height: 100%; display: block; }
   .drag-ghost .lname { font-weight: 700; font-size: 1.02rem; }
@@ -181,6 +209,27 @@
     .container { grid-template-columns: 1fr; }
     .sticker .lightimg { width: 78px; height: 62px; }
   }
+
+  /* ===== 主题（body[data-theme] 一键切换） ===== */
+  body[data-theme="fresh"] {
+    --bg: #eef3fb; --panel: #ffffff; --card: #f8fbff; --border: #c9d8ec;
+    --text: #2c3e50; --muted: #7f8fa6; --gold: #e67e22; --accent: #e74c3c;
+    --cyan: #16a085; --purple: #8e7cc3; --correct: #27ae60; --wrong: #e74c3c;
+    --shadow: 0 4px 16px rgba(0,0,0,0.10);
+    --glow: #dce8f6; --img-bg: #eef3fb; --img-border: #c9d8ec;
+    --toolbar-hover: #e4edf8; --drag-over-bg: #d4e4ff;
+    --correct-bg: #d5f5e3; --wrong-bg: #fdeaea; --footer: #9aa7b8;
+  }
+  body[data-theme="neon"] {
+    --bg: #150f24; --panel: #201636; --card: #2a1e47; --border: #4a3a78;
+    --text: #f3eefc; --muted: #a99ac8; --gold: #ffd166; --accent: #ff6b9d;
+    --cyan: #4ecdc4; --purple: #b388ff; --correct: #2ecc71; --wrong: #ff5252;
+    --shadow: 0 4px 16px rgba(0,0,0,0.5);
+    --glow: #2a1e47; --img-bg: #180f2b; --img-border: #3a2c60;
+    --toolbar-hover: #3a2c60; --drag-over-bg: #3a2c60;
+    --correct-bg: rgba(46, 204, 113, 0.14); --wrong-bg: rgba(255, 82, 82, 0.14);
+    --footer: #7a6aa8;
+  }
 </style></head>
 <body>
 
@@ -197,10 +246,16 @@
 </div>
 
 <div class="toolbar">
+  <div class="diff-group">
+    <button class="btn-diff" data-diff="easy" onclick="setDifficulty('easy')">🔰 简易 6</button>
+    <button class="btn-diff" data-diff="full" onclick="setDifficulty('full')">🔰 全量 12</button>
+  </div>
   <button class="btn-shuffle" onclick="shuffleLights()">🔀 随机打乱</button>
   <button class="btn-undo" onclick="undoLast()">↩ 撤销</button>
   <button class="btn-check" onclick="checkAll()">✅ 检查答案</button>
   <button class="btn-reset" onclick="resetAll()">↺ 重置</button>
+  <button class="btn-tool" id="btnSound" onclick="toggleSound()">🔊 音效</button>
+  <button class="btn-tool" id="btnTheme" onclick="cycleTheme()">🎨 舞台</button>
 </div>
 
 <div class="progress-wrap">
@@ -271,6 +326,83 @@
   ];
 
   // ===== 状态 =====
+  // ---- 主题 / 音效 / 难度（选择会被记住） ----
+  const THEMES = ['stage', 'fresh', 'neon'];
+  const THEME_LABELS = { stage: '舞台', fresh: '清新', neon: '霓虹' };
+  const EASY_IDS = ['l1', 'l2', 'l3', 'l5', 'l6', 'l7'];
+  const DIFFS = {
+    easy: { label: '简易', size: 6, milestones: [3, 5] },
+    full: { label: '全量', size: 12, milestones: [5, 10] }
+  };
+
+  function loadPref(key, def) {
+    try { const v = localStorage.getItem(key); return v === null ? def : v; } catch (err) { return def; }
+  }
+  let difficulty = loadPref('stageLightDiff', 'easy');
+  let theme = loadPref('stageLightTheme', 'stage');
+  let soundOn = loadPref('stageLightSound', '1') === '1';
+  let audioCtx = null;
+
+  function activeLights() { return LIGHTS.filter(function(s) { return difficulty === 'easy' ? EASY_IDS.indexOf(s.id) >= 0 : true; }); }
+  function activeEffects() {
+    const ids = new Set(activeLights().map(function(s) { return s.answer; }));
+    return EFFECTS.filter(function(c) { return ids.has(c.id); });
+  }
+  function totalCount() { return activeLights().length; }
+  function bestKey() { return 'stageLightGameBest_' + difficulty; }
+
+  // ---- 音效（Web Audio，无需素材） ----
+  function ensureAudio() {
+    if (!soundOn) return;
+    if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (err) {} }
+    if (audioCtx && audioCtx.state === 'suspended') { try { audioCtx.resume(); } catch (err) {} }
+  }
+  function tone(freq, start, dur, type, vol) {
+    if (!audioCtx || !soundOn) return;
+    try {
+      const t0 = audioCtx.currentTime + start;
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.type = type || 'sine';
+      o.frequency.setValueAtTime(freq, t0);
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(vol || 0.16, t0 + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(t0); o.stop(t0 + dur + 0.05);
+    } catch (err) {}
+  }
+  function sfxCorrect() { ensureAudio(); tone(523.25, 0, 0.14, 'sine', 0.18); tone(659.25, 0.09, 0.16, 'sine', 0.18); }
+  function sfxWrong() { ensureAudio(); tone(196, 0, 0.22, 'sawtooth', 0.12); tone(147, 0.08, 0.26, 'sawtooth', 0.12); }
+  function sfxMilestone() { ensureAudio(); [523.25, 659.25, 783.99, 1046.5].forEach(function(f, i) { tone(f, i * 0.09, 0.18, 'triangle', 0.2); }); }
+  function sfxWin() { ensureAudio(); [523.25, 659.25, 783.99, 1046.5, 783.99, 1046.5].forEach(function(f, i) { tone(f, i * 0.12, 0.22, 'triangle', 0.2); }); }
+
+  // ---- 主题 ----
+  function applyTheme() {
+    document.body.setAttribute('data-theme', theme);
+    const btn = document.getElementById('btnTheme');
+    if (btn) btn.textContent = '🎨 ' + THEME_LABELS[theme];
+    try { localStorage.setItem('stageLightTheme', theme); } catch (err) {}
+  }
+  function cycleTheme() { theme = THEMES[(THEMES.indexOf(theme) + 1) % THEMES.length]; applyTheme(); }
+
+  // ---- 音效开关 ----
+  function updateSoundBtn() {
+    const btn = document.getElementById('btnSound');
+    if (btn) btn.textContent = soundOn ? '🔊 音效' : '🔇 静音';
+    try { localStorage.setItem('stageLightSound', soundOn ? '1' : '0'); } catch (err) {}
+  }
+  function toggleSound() { soundOn = !soundOn; updateSoundBtn(); }
+
+  // ---- 难度 ----
+  function setDifficulty(d) {
+    if (difficulty === d) return;
+    difficulty = d;
+    try { localStorage.setItem('stageLightDiff', d); } catch (err) {}
+    document.querySelectorAll('.btn-diff').forEach(function(b) { b.classList.toggle('active', b.dataset.diff === d); });
+    freshRound();
+  }
+
   function shuffleArray(arr) {
     for (let i = arr.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -278,7 +410,7 @@
     }
     return arr;
   }
-  let lightOrder = shuffleArray([...LIGHTS]);
+  let lightOrder = shuffleArray(activeLights());
   let assignments = {};
   let matchedLights = new Set();
   let streak = 0;
@@ -320,7 +452,7 @@
   function renderEffects() {
     const list = document.getElementById('charList');
     list.innerHTML = '';
-    EFFECTS.forEach(c => {
+    activeEffects().forEach(c => {
       const el = document.createElement('div');
       el.className = 'char-slot';
       el.dataset.id = c.id;
@@ -336,7 +468,7 @@
   }
 
   function updateEffectPlaced() {
-    EFFECTS.forEach(c => {
+    activeEffects().forEach(c => {
       const slot = document.querySelector('.char-slot[data-id="' + c.id + '"]');
       const placed = slot.querySelector('.placed');
       const assigned = Object.keys(assignments).filter(k => assignments[k] === c.id);
@@ -350,7 +482,7 @@
   }
 
   function updateProgress() {
-    const total = LIGHTS.length;
+    const total = totalCount();
     const matched = matchedLights.size;
     const fill = document.getElementById('progressFill');
     const txt = document.getElementById('progressText');
@@ -367,17 +499,21 @@
   function updateBest() {
     const b = loadBest();
     const el = document.getElementById('bestInfo');
-    if (el) el.textContent = b > 0 ? '🏅 个人最佳：' + b + ' / ' + LIGHTS.length : '';
+    if (el) el.textContent = b > 0 ? '🏅 个人最佳：' + b + ' / ' + totalCount() : '';
   }
 
   function loadBest() {
-    try { return parseInt(localStorage.getItem('stageLightBest') || '0', 10) || 0; } catch (err) { return 0; }
+    try {
+      let v = localStorage.getItem(bestKey());
+      if (v === null && difficulty === 'full') v = localStorage.getItem('stageLightBest');
+      return parseInt(v || '0', 10) || 0;
+    } catch (err) { return 0; }
   }
 
   function saveBest() {
     const m = matchedLights.size;
     if (m > loadBest()) {
-      try { localStorage.setItem('stageLightBest', String(m)); } catch (err) {}
+      try { localStorage.setItem(bestKey(), String(m)); } catch (err) {}
     }
   }
 
@@ -526,10 +662,10 @@
       if (oldSlot) oldSlot.classList.remove('correct', 'wrong', 'shake', 'pop');
     }
     assignments[lightId] = fxId;
-    matchedLights.add(lightId);
     const slot = document.querySelector('.char-slot[data-id="' + fxId + '"]');
     const light = LIGHTS.find(s => s.id === lightId);
     const ok = !!(light && light.answer === fxId);
+    if (ok) { matchedLights.add(lightId); } else { matchedLights.delete(lightId); }
     if (slot) {
       slot.classList.remove('correct', 'wrong', 'shake', 'pop');
       slot.classList.add(ok ? 'correct' : 'wrong');
@@ -558,20 +694,26 @@
     const ok = setAssignment(lightId, fxId);
     if (ok) {
       streak++;
+      sfxCorrect();
       const slot = document.querySelector('.char-slot[data-id="' + fxId + '"]');
       if (slot) { slot.classList.remove('pop'); void slot.offsetWidth; slot.classList.add('pop'); }
-      if (streak === 5) {
-        setResult('🌟 达成 5 连对！灯光师潜力初显！', 'success');
-      } else if (streak === 10) {
-        setResult('🏆 十连对！舞台已经被你点亮了！', 'success');
-      } else if (matchedLights.size === LIGHTS.length && !completedShown) {
+      const ms = DIFFS[difficulty].milestones;
+      if (streak === ms[0]) {
+        sfxMilestone();
+        setResult('🌟 达成 ' + ms[0] + ' 连胜！灯光师潜力初显！', 'success');
+      } else if (ms.length > 1 && streak === ms[1]) {
+        sfxMilestone();
+        setResult('🏆 ' + ms[1] + ' 连对！舞台已经被你点亮了！', 'success');
+      } else if (matchedLights.size === totalCount() && !completedShown) {
         completedShown = true;
-        setResult('👑 满分通关！全部 12 种灯具都认出来了！', 'success');
+        sfxWin();
+        setResult('👑 满分通关！全部 ' + totalCount() + ' 种灯具都认出来了！', 'success');
         celebrate();
       }
     } else {
       mistakes++;
       streak = 0;
+      sfxWrong();
       const slot = document.querySelector('.char-slot[data-id="' + fxId + '"]');
       if (slot) { slot.classList.remove('shake'); void slot.offsetWidth; slot.classList.add('shake'); }
       setResult('✗ 配对错了，再试试！', 'error');
@@ -621,7 +763,7 @@
     completedShown = false;
     selectedLightId = null;
     endDrag();
-    lightOrder = shuffleArray([...LIGHTS]);
+    lightOrder = shuffleArray(activeLights());
     document.querySelectorAll('.char-slot').forEach(s => s.classList.remove('correct', 'wrong', 'shake', 'pop', 'drag-over'));
     setResult('', '');
     renderStickers();
@@ -635,7 +777,7 @@
   function resetAll() { freshRound(); }
 
   function checkAll() {
-    const total = LIGHTS.length;
+    const total = totalCount();
     const correct = matchedLights.size;
     if (correct === total) {
       setResult('🎉 全部正确！舞台灯光就位！', 'success');
@@ -651,6 +793,9 @@
   }
 
   // ===== 初始化 =====
+  applyTheme();
+  updateSoundBtn();
+  document.querySelectorAll('.btn-diff').forEach(function(b) { b.classList.toggle('active', b.dataset.diff === difficulty); });
   renderStickers();
   renderEffects();
   updateProgress();
