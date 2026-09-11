@@ -418,7 +418,12 @@
   let difficulty = loadPref('stageLightDiff', 'easy');
   let theme = loadPref('stageLightTheme', 'stage');
   let soundOn = loadPref('stageLightSound', '1') === '1';
-  let guideMode = loadPref('stageLightGuide', 'off') === 'on';
+  const guideParam = new URLSearchParams(window.location.search).get('mode');
+  let guideMode = guideParam === 'guide'
+    ? true
+    : guideParam === 'classic'
+      ? false
+      : loadPref('stageLightGuide', 'on') === 'on';
   let hintStages = {};
   let hintExcluded = {};
   let audioCtx = null;
@@ -539,6 +544,11 @@
     if (guideMode === next) return;
     guideMode = next;
     try { localStorage.setItem('stageLightGuide', guideMode ? 'on' : 'off'); } catch (err) {}
+    if (new URLSearchParams(window.location.search).has('mode')) {
+      const nextUrl = new URL(window.location.href);
+      nextUrl.searchParams.delete('mode');
+      window.history.replaceState({}, '', nextUrl.pathname + nextUrl.search + nextUrl.hash);
+    }
     applyGuideMode();
     setResult(guideMode ? '🧭 新手引导已开启，可随时切回经典模式' : '🎮 已切回经典模式', guideMode ? 'success' : 'error');
   }
