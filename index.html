@@ -508,7 +508,8 @@
       if (target) target.classList.add('hint-target');
     }
     if (stage === 1) {
-      updateHintStatus('提示 1/3：先观察灯具的外形和光束特征');
+      const light = LIGHTS.find(function(item) { return item.id === lightId; });
+      updateHintStatus(light ? '提示 1/3：' + light.name + '——' + light.hint : '提示 1/3：先观察灯具的外形和光束特征');
     } else if (stage === 2) {
       updateHintStatus('提示 2/3：已排除一个错误选项，并在卡片上变灰');
     } else if (stage >= 3) {
